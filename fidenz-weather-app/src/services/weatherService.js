@@ -3,9 +3,13 @@ import axios from "axios";
 const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 const GROUP_URL = "https://api.openweathermap.org/data/2.5/group";
 const ONE_CITY_URL = "https://api.openweathermap.org/data/2.5/weather";
+
+//Log API key status
+console.log("API Key loaded:", API_KEY ? "Yes" : "No");
+console.log("API Key value:", API_KEY);
 const TTL = 5 * 60 * 1000; // 5 minutes (assignment requirement) 
 
-// ---- simple localStorage cache helpers ----
+//simple localStorage cache helpers 
 function getCache(key) {
   try {
     const raw = localStorage.getItem(key);
@@ -26,19 +30,17 @@ function setCache(key, payload, ttl = TTL) {
   localStorage.setItem(key, value);
 }
 
-// ---- utility: split IDs into batches of 20 (OWM group API limit) ----
+//utility: split IDs into batches of 20 (OWM group API limit)
 function chunk(arr, size = 20) {
   const out = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
 }
 
-// Reads /public/cities.json and returns [ids]
 export async function getCityIds() {
   const res = await fetch("/cities.json");
   const all = await res.json();
 
-  // Your file has { "List": [...] }
   const cityArray = all.List;
 
   if (!Array.isArray(cityArray)) {
@@ -48,34 +50,59 @@ export async function getCityIds() {
   return cityArray.map((c) => c.CityCode).filter(Boolean);
 }
 
-// Gets weather for MANY ids via /group (handles batching + merge)
 export async function getGroupWeather(cityIds) {
   const ids = [...new Set(cityIds)].map(String).sort();
   const cacheKey = `group_${ids.join(",")}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  const batches = chunk(ids, 20);
-  const results = [];
-  for (const batch of batches) {
-    const { data } = await axios.get(GROUP_URL, {
-      params: { id: batch.join(","), units: "metric", appid: API_KEY },
-    });
-    // data.list is an array; merge all
-    results.push(...data.list);
+  // Try group endpoint first, fallback to individual calls
+  try {
+    console.log("Trying group endpoint first...");
+    const batches = chunk(ids, 20);
+    const results = [];
+    for (const batch of batches) {
+      const params = { id: batch.join(","), units: "metric", appid: API_KEY };
+      console.log("Making group API request with params:", params);
+      
+      const { data } = await axios.get(GROUP_URL, {
+        params: params,
+      });
+     
+      results.push(...data.list);
+    }
+    const merged = { list: results };
+    setCache(cacheKey, merged);
+    return merged;
+  } catch (error) {
+    console.log("Group endpoint failed, trying individual calls...", error.message);
+    
+    // Fallback to individual calls
+    const results = [];
+    for (const id of ids) {
+      try {
+        const { data } = await axios.get(ONE_CITY_URL, {
+          params: { id, units: "metric", appid: API_KEY },
+        });
+        results.push(data);
+      } catch (individualError) {
+        console.error(`Failed to get weather for city ${id}:`, individualError.message);
+       
+      }
+    }
+    
+    const merged = { list: results };
+    setCache(cacheKey, merged);
+    return merged;
   }
-  const merged = { list: results };
-  setCache(cacheKey, merged);
-  return merged;
 }
 
-// Gets weather for ONE city id (detail page)
+// Show weather details for particular city
 export async function getCityWeather(id) {
   const cacheKey = `city_${id}`;
   const cached = getCache(cacheKey);
   if (cached) return cached;
 
-  // You can also call GROUP with a single id, but /weather is fine for detail.
   const { data } = await axios.get(ONE_CITY_URL, {
     params: { id, units: "metric", appid: API_KEY },
   });

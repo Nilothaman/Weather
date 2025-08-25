@@ -24,7 +24,7 @@ export default function Dashboard() {
 
   return (
     <div className="content-container">
-      {/* The assignment UI shows an input + "Add City" button, but add-city is NOT required */}
+      
       <div style={{ display: "flex", gap: 8, justifyContent: "center", margin: "10px 0 22px" }}>
         <input placeholder="Enter a city" disabled style={{ width: 320, padding: 10, borderRadius: 8, border: "none" }} />
         <button disabled>Add City</button>
