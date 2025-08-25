@@ -24,7 +24,6 @@ body, #root { margin: 0; min-height: 100vh; }
 
 .content-container { max-width: 1200px; margin: 0 auto; }
 
-/* card grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -83,14 +82,12 @@ body, #root { margin: 0; min-height: 100vh; }
 
 .footer { margin-top: 24px; text-align: center; opacity: .7; }
 
-/* themes to match your screenshot colors */
 .theme-blue   .card-top, .theme-blue.detail-top   { background: #3d8ef7; }
 .theme-purple .card-top, .theme-purple.detail-top { background: #7b61ff; }
 .theme-green  .card-top, .theme-green.detail-top  { background: #29b873; }
 .theme-orange .card-top, .theme-orange.detail-top { background: #f5a343; }
 .theme-red    .card-top, .theme-red.detail-top    { background: #d35151; }
 
-/* responsive */
 @media (max-width: 640px) {
   .card-bottom { grid-template-columns: repeat(2, 1fr); }
   .detail-grid { grid-template-columns: repeat(2, 1fr); }

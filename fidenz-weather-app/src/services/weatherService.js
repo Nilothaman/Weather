@@ -7,7 +7,7 @@ const ONE_CITY_URL = "https://api.openweathermap.org/data/2.5/weather";
 //Log API key status
 console.log("API Key loaded:", API_KEY ? "Yes" : "No");
 console.log("API Key value:", API_KEY);
-const TTL = 5 * 60 * 1000; // 5 minutes (assignment requirement) 
+const TTL = 5 * 60 * 1000; // 5 minutes
 
 //simple localStorage cache helpers 
 function getCache(key) {
@@ -30,7 +30,7 @@ function setCache(key, payload, ttl = TTL) {
   localStorage.setItem(key, value);
 }
 
-//utility: split IDs into batches of 20 (OWM group API limit)
+//split IDs into batches of 20(OWM group API limit)
 function chunk(arr, size = 20) {
   const out = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -77,7 +77,6 @@ export async function getGroupWeather(cityIds) {
   } catch (error) {
     console.log("Group endpoint failed, trying individual calls...", error.message);
     
-    // Fallback to individual calls
     const results = [];
     for (const id of ids) {
       try {
